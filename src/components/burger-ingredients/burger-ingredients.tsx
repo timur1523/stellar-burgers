@@ -3,8 +3,20 @@ import { useInView } from 'react-intersection-observer';
 
 import { TTabMode } from '@utils-types';
 import { BurgerIngredientsUI } from '../ui/burger-ingredients';
+import { useDispatch, useSelector } from '../../services/store';
+import { fetchIngredients } from '../../services/slices/ingredients-slice';
 
 export const BurgerIngredients: FC = () => {
+  const dispatch = useDispatch();
+  const { ingredients, loading, error } = useSelector(
+    (state) => state.ingredients
+  );
+
+  useEffect(() => {
+    dispatch(fetchIngredients());
+  }, [dispatch]);
+
+  console.log(ingredients);
   /** TODO: взять переменные из стора */
   const buns = [];
   const mains = [];
