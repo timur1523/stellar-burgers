@@ -12,16 +12,17 @@ import {
 import '../../index.css';
 import styles from './app.module.css';
 
-import { AppHeader, IngredientDetails, OrderInfo } from '@components';
-import { ModalUI, Preloader } from '@ui';
+import { AppHeader, IngredientDetails, Modal, OrderInfo } from '@components';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ProtectedRoute } from '../protected-route/protected-Route';
+import { ProtectedRoute } from '../protected-route/protected-route';
+import { useDispatch } from '../../services/store';
+import { useEffect } from 'react';
+import { getCookie } from '../../utils/cookie';
+import { fetchUser } from '../../services/slices/auth-slice';
 
 const App = () => {
   /** TODO: взять переменные из стора */
-  const isIngredientsLoading = false;
-  const ingredients = [];
-  const error = null;
+  const dispatch = useDispatch();
   const location = useLocation();
   const background = location.state?.background;
   const navigate = useNavigate();
@@ -30,14 +31,18 @@ const App = () => {
     navigate(-1);
   };
 
+  useEffect(() => {
+    if (getCookie('accessToken')) {
+      dispatch(fetchUser());
+    }
+  });
+
   return (
     <div className={styles.app}>
       <AppHeader />
       <Routes location={background || location}>
         <Route path='/' element={<ConstructorPage />} />
         <Route path='/feed' element={<Feed />} />
-        <Route path='/feed/:number' element={<OrderInfo />} />
-        <Route path='/ingredients/:id' element={<IngredientDetails />} />
         <Route
           path='/login'
           element={
@@ -101,9 +106,17 @@ const App = () => {
           <Route
             path='/ingredients/:id'
             element={
-              <ModalUI onClose={handleModalClose} title='Детали заказа'>
+              <Modal onClose={handleModalClose} title='Детали ингредиента'>
                 <IngredientDetails />
-              </ModalUI>
+              </Modal>
+            }
+          />
+          <Route
+            path='/feed/:number'
+            element={
+              <Modal onClose={handleModalClose} title='Детали заказа'>
+                <OrderInfo />
+              </Modal>
             }
           />
         </Routes>

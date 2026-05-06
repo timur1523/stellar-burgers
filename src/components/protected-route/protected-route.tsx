@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from '../../services/store';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,15 +11,15 @@ export const ProtectedRoute = ({
   children,
   onlyUnAuth
 }: ProtectedRouteProps) => {
-  const isAuthorisation = false;
+  const { isAuth } = useSelector((state) => state.auth);
   const location = useLocation();
-  if (!onlyUnAuth && !isAuthorisation) {
-    return <Navigate to='/login' />;
+  if (!onlyUnAuth && !isAuth) {
+    return <Navigate to='/login' state={{ from: location }} />;
   }
 
-  if (onlyUnAuth && isAuthorisation) {
-    // const from = location.state?.from || { pathname: '/' };
-    return <Navigate to='/' />;
+  if (onlyUnAuth && isAuth) {
+    const from = location.state?.from || { pathname: '/' };
+    return <Navigate to={from} />;
   }
   return <>{children}</>;
 };
