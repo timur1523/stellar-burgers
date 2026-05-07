@@ -86,16 +86,8 @@ const App = () => {
         <Route
           path='/profile/orders'
           element={
-            <ProtectedRoute onlyUnAuth>
+            <ProtectedRoute>
               <ProfileOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/profile/orders/:number'
-          element={
-            <ProtectedRoute onlyUnAuth>
-              <OrderInfo />
             </ProtectedRoute>
           }
         />
@@ -117,6 +109,16 @@ const App = () => {
               <Modal onClose={handleModalClose} title='Детали заказа'>
                 <OrderInfo />
               </Modal>
+            }
+          />
+          <Route
+            path='/profile/orders/:number'
+            element={
+              <ProtectedRoute>
+                <Modal onClose={handleModalClose} title='Детали заказа'>
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
             }
           />
         </Routes>

@@ -17,7 +17,7 @@ export const OrderInfo: FC = () => {
     if (number && (!currentOrder || currentOrder.number.toString())) {
       dispatch(fetchOrderByNumber(+number));
     }
-  }, [dispatch, number, currentOrder]);
+  }, [dispatch, number]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
@@ -63,7 +63,7 @@ export const OrderInfo: FC = () => {
     };
   }, [currentOrder, ingredients]);
 
-  if (!orderInfo) {
+  if (loading || !orderInfo) {
     return <Preloader />;
   }
 

@@ -11,17 +11,19 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => {
   const location = useLocation().pathname;
-  let ref = '';
+  const ref = { constructor: '', personal: '/login' };
 
-  if(location.startsWith('/ingredients/')) {
-    ref = location
+  if (location.startsWith('/ingredients/')) {
+    ref.constructor = location;
+  } else if (location.startsWith('/register')) {
+    ref.personal = location;
   }
   return (
     <header className={styles.header}>
       <nav className={`${styles.menu} p-4`}>
         <div className={styles.menu_part_left}>
           <NavLink
-            to={ref}
+            to={ref.constructor}
             className={({ isActive }) =>
               `${styles.link} ${isActive ? styles.link_active : ''}`
             }
@@ -45,7 +47,7 @@ export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => {
           <Logo className='' />
         </div>
         <NavLink
-          to='/login'
+          to={userName ? '/profile' : ref.personal}
           className={({ isActive }) =>
             `${styles.link_position_last} ${styles.link} ${isActive ? styles.link_active : ''}`
           }
