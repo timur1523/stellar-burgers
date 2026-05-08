@@ -18,13 +18,15 @@ interface AuthState {
   isAuth: boolean;
   loading: boolean;
   error: null | string;
+  isAuthChecked: boolean;
 }
 
 const initialState: AuthState = {
   user: null,
   isAuth: false,
   loading: false,
-  error: null
+  error: null,
+  isAuthChecked: false
 };
 
 export const login = createAsyncThunk(
@@ -115,6 +117,7 @@ const authSlice = createSlice({
       })
 
       .addCase(logOut.fulfilled, (state) => {
+        state.isAuthChecked = false;
         state.user = null;
         state.isAuth = false;
       })
@@ -124,10 +127,11 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUser.rejected, (state, action) => {
+        state.isAuthChecked = true;
         state.loading = false;
-        state.error = action.error.message || 'Ошибка загрузки пользователя';
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
+        state.isAuthChecked = true;
         state.loading = false;
         state.user = action.payload;
         state.isAuth = true;

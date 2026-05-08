@@ -17,8 +17,8 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { ProtectedRoute } from '../protected-route/protected-route';
 import { useDispatch } from '../../services/store';
 import { useEffect } from 'react';
-import { getCookie } from '../../utils/cookie';
 import { fetchUser } from '../../services/slices/auth-slice';
+import { fetchIngredients } from '../../services/slices/ingredients-slice';
 
 const App = () => {
   /** TODO: взять переменные из стора */
@@ -32,9 +32,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (getCookie('accessToken')) {
-      dispatch(fetchUser());
-    }
+    dispatch(fetchUser());
+    dispatch(fetchIngredients());
   });
 
   return (
@@ -88,6 +87,16 @@ const App = () => {
           element={
             <ProtectedRoute>
               <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route path='/ingredients/:id' element={<IngredientDetails />} />
+        <Route path='/feed/:number' element={<OrderInfo />} />
+        <Route
+          path='/profile/orders/:number'
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
             </ProtectedRoute>
           }
         />

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from '../../services/store';
 import { useNavigate } from 'react-router-dom';
 import {
   clearCurrentOrder,
+  cancelOrder,
   createOrder
 } from '../../services/slices/orders-slice';
 import { clearConstructor } from '../../services/slices/constructor-slice';
@@ -35,7 +36,10 @@ export const BurgerConstructor: FC = () => {
     dispatch(createOrder(ids));
   };
   const closeOrderModal = () => {
-    dispatch(clearConstructor());
+    dispatch(cancelOrder());
+    if (currentOrder) {
+      dispatch(clearConstructor());
+    }
     dispatch(clearCurrentOrder());
   };
 

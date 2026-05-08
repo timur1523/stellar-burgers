@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from '../../services/store';
+import { Preloader } from '@ui';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -11,8 +12,11 @@ export const ProtectedRoute = ({
   children,
   onlyUnAuth
 }: ProtectedRouteProps) => {
-  const { isAuth } = useSelector((state) => state.auth);
+  const { isAuth, isAuthChecked } = useSelector((state) => state.auth);
   const location = useLocation();
+  if (!isAuthChecked) {
+    return <Preloader />;
+  }
   if (!onlyUnAuth && !isAuth) {
     return <Navigate to='/login' state={{ from: location }} />;
   }

@@ -7,6 +7,8 @@ import {
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { TOrder } from '@utils-types';
 
+let orderAbortController: AbortController | null = null;
+
 interface OrdersState {
   feed: {
     orders: TOrder[];
@@ -18,6 +20,7 @@ interface OrdersState {
   loading: boolean;
   error: string | null;
   feedLoading: boolean;
+  modalLoading: boolean;
 }
 
 const initialState: OrdersState = {
@@ -29,6 +32,7 @@ const initialState: OrdersState = {
   userOrders: [],
   currentOrder: null,
   loading: false,
+  modalLoading: false,
   error: null,
   feedLoading: false
 };
@@ -57,7 +61,11 @@ export const fetchOrderByNumber = createAsyncThunk(
 export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (ingredients: string[]) => {
-    const data = await orderBurgerApi(ingredients);
+    orderAbortController = new AbortController();
+    const data = await orderBurgerApi(
+      ingredients,
+      orderAbortController!.signal
+    );
     return { ...data.order, ingredients };
   }
 );
@@ -68,6 +76,13 @@ const orderSlice = createSlice({
   reducers: {
     clearCurrentOrder(state) {
       state.currentOrder = null;
+    },
+    cancelOrder(state) {
+      if (orderAbortController) {
+        orderAbortController.abort();
+        orderAbortController = null;
+      }
+      state.loading = false;
     }
   },
   extraReducers: (builder) => {
@@ -97,15 +112,15 @@ const orderSlice = createSlice({
         state.userOrders = action.payload;
       })
       .addCase(fetchOrderByNumber.pending, (state) => {
-        state.loading = true;
+        state.modalLoading = true;
         state.error = null;
       })
       .addCase(fetchOrderByNumber.rejected, (state, action) => {
-        state.loading = false;
+        state.modalLoading = false;
         state.error = action.error.message || 'Не удалось загрузить заказ';
       })
       .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
-        state.loading = false;
+        state.modalLoading = false;
         state.currentOrder = action.payload;
       })
       .addCase(createOrder.pending, (state) => {
@@ -123,5 +138,5 @@ const orderSlice = createSlice({
   }
 });
 
-export const { clearCurrentOrder } = orderSlice.actions;
+export const { clearCurrentOrder, cancelOrder } = orderSlice.actions;
 export default orderSlice.reducer;
