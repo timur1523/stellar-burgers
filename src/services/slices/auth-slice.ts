@@ -117,7 +117,7 @@ const authSlice = createSlice({
       })
 
       .addCase(logOut.fulfilled, (state) => {
-        state.isAuthChecked = false;
+        state.isAuthChecked = true;
         state.user = null;
         state.isAuth = false;
       })

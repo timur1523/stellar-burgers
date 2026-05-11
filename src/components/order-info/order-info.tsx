@@ -10,26 +10,26 @@ export const OrderInfo: FC = () => {
   /** TODO: взять переменные orderData и ingredients из стора */
   const dispatch = useDispatch();
   const { number } = useParams();
-  const { currentOrder, loading } = useSelector((state) => state.orders);
+  const { modalOrder, modalLoading } = useSelector((state) => state.orders);
   const { ingredients } = useSelector((state) => state.ingredients);
 
   useEffect(() => {
-    if (number && (!currentOrder || currentOrder.number.toString())) {
+    if (number && (!modalOrder || modalOrder.number.toString())) {
       dispatch(fetchOrderByNumber(+number));
     }
   }, [dispatch, number]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
-    if (!currentOrder || !ingredients.length) return null;
+    if (!modalOrder || !ingredients.length) return null;
 
-    const date = new Date(currentOrder.createdAt);
+    const date = new Date(modalOrder.createdAt);
 
     type TIngredientsWithCount = {
       [key: string]: TIngredient & { count: number };
     };
 
-    const ingredientsInfo = currentOrder.ingredients.reduce(
+    const ingredientsInfo = modalOrder.ingredients.reduce(
       (acc: TIngredientsWithCount, item) => {
         if (!acc[item]) {
           const ingredient = ingredients.find((ing) => ing._id === item);
@@ -56,14 +56,14 @@ export const OrderInfo: FC = () => {
     );
 
     return {
-      ...currentOrder,
+      ...modalOrder,
       ingredientsInfo,
       date,
       total
     };
-  }, [currentOrder, ingredients]);
+  }, [modalOrder, ingredients]);
 
-  if (loading || !orderInfo) {
+  if (modalLoading || !orderInfo) {
     return <Preloader />;
   }
 

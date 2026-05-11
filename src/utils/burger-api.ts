@@ -122,7 +122,7 @@ type TNewOrderResponse = TServerResponse<{
   name: string;
 }>;
 
-export const orderBurgerApi = (data: string[], signal?: AbortSignal) =>
+export const orderBurgerApi = (data: string[]) =>
   fetchWithRefresh<TNewOrderResponse>(`${URL}/orders`, {
     method: 'POST',
     headers: {
@@ -131,8 +131,7 @@ export const orderBurgerApi = (data: string[], signal?: AbortSignal) =>
     } as HeadersInit,
     body: JSON.stringify({
       ingredients: data
-    }),
-    signal
+    })
   }).then((data) => {
     if (data?.success) return data;
     return Promise.reject(data);

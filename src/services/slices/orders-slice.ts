@@ -7,8 +7,6 @@ import {
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { TOrder } from '@utils-types';
 
-let orderAbortController: AbortController | null = null;
-
 interface OrdersState {
   feed: {
     orders: TOrder[];
@@ -17,6 +15,7 @@ interface OrdersState {
   };
   userOrders: TOrder[];
   currentOrder: TOrder | null;
+  modalOrder: TOrder | null;
   loading: boolean;
   error: string | null;
   feedLoading: boolean;
@@ -31,6 +30,7 @@ const initialState: OrdersState = {
   },
   userOrders: [],
   currentOrder: null,
+  modalOrder: null,
   loading: false,
   modalLoading: false,
   error: null,
@@ -61,11 +61,7 @@ export const fetchOrderByNumber = createAsyncThunk(
 export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (ingredients: string[]) => {
-    orderAbortController = new AbortController();
-    const data = await orderBurgerApi(
-      ingredients,
-      orderAbortController!.signal
-    );
+    const data = await orderBurgerApi(ingredients);
     return { ...data.order, ingredients };
   }
 );
@@ -76,12 +72,6 @@ const orderSlice = createSlice({
   reducers: {
     clearCurrentOrder(state) {
       state.currentOrder = null;
-    },
-    cancelOrder(state) {
-      if (orderAbortController) {
-        orderAbortController.abort();
-        orderAbortController = null;
-      }
       state.loading = false;
     }
   },
@@ -121,7 +111,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
         state.modalLoading = false;
-        state.currentOrder = action.payload;
+        state.modalOrder = action.payload;
       })
       .addCase(createOrder.pending, (state) => {
         state.loading = true;
@@ -138,5 +128,5 @@ const orderSlice = createSlice({
   }
 });
 
-export const { clearCurrentOrder, cancelOrder } = orderSlice.actions;
+export const { clearCurrentOrder } = orderSlice.actions;
 export default orderSlice.reducer;
