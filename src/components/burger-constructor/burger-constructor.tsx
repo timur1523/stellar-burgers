@@ -1,24 +1,45 @@
 import { FC, useMemo } from 'react';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
+import { useDispatch, useSelector } from '../../services/store';
+import { useNavigate } from 'react-router-dom';
+import {
+  clearCurrentOrder,
+  createOrder
+} from '../../services/slices/orders-slice';
+import { clearConstructor } from '../../services/slices/constructor-slice';
 
 export const BurgerConstructor: FC = () => {
   /** TODO: взять переменные constructorItems, orderRequest и orderModalData из стора */
+  const dispatch = useDispatch();
+  const { ingredients, bun } = useSelector((state) => state.burgerConstructor);
+  const { isAuth } = useSelector((state) => state.auth);
+  const { loading, currentOrder } = useSelector((state) => state.orders);
   const constructorItems = {
-    bun: {
-      price: 0
-    },
-    ingredients: []
+    bun,
+    ingredients
   };
-
-  const orderRequest = false;
-
-  const orderModalData = null;
+  const navigate = useNavigate();
 
   const onOrderClick = () => {
-    if (!constructorItems.bun || orderRequest) return;
+    if (!isAuth) {
+      navigate('/login');
+      return;
+    }
+    if (!constructorItems.bun || loading) return;
+    const ids = [
+      constructorItems.bun._id,
+      ...constructorItems.ingredients.map((item) => item._id),
+      constructorItems.bun._id
+    ];
+    dispatch(createOrder(ids)).then(() => {
+      dispatch(clearConstructor());
+    });
   };
-  const closeOrderModal = () => {};
+
+  const closeOrderModal = () => {
+    dispatch(clearCurrentOrder());
+  };
 
   const price = useMemo(
     () =>
@@ -30,14 +51,12 @@ export const BurgerConstructor: FC = () => {
     [constructorItems]
   );
 
-  return null;
-
   return (
     <BurgerConstructorUI
       price={price}
-      orderRequest={orderRequest}
+      orderRequest={loading}
       constructorItems={constructorItems}
-      orderModalData={orderModalData}
+      orderModalData={currentOrder}
       onOrderClick={onOrderClick}
       closeOrderModal={closeOrderModal}
     />
