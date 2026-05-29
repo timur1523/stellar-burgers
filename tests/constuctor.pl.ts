@@ -1,0 +1,113 @@
+import { expect, selectors, test } from "@playwright/test"
+
+test.describe("Страница конструктора", () => {
+    test.beforeEach(async ({ page, context }) => {
+        await context.addCookies([{ name: "accessToken", value: "mock-access-token", url: "http://localhost:4000" }])
+        await page.context().addInitScript(() => {
+            localStorage.setItem("refreshToken", "mock-refresh-token")
+        })
+        await page.route("**/api/**", async (route) => {
+            const request = route.request()
+            const url = request.url()
+            if (url.includes("/api/ingredients")) {
+                await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify })
+            } else if (url.includes("/api/auth/user")) {
+                await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify })
+            } else if (url.includes("/api/orders")) {
+                await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify })
+            } else {
+                await route.continue()
+            }
+        })
+        await page.goto("/")
+    })
+    test("Загрузка и отображение ингредиентов", async ({ page }) => {
+        await page.waitForSelector("text=Краторная булка N-200i", { timeout: 5000 })
+        const bunIngredient = page.locator("text=Краторная булка N-200i")
+        const mainIngerdient = page.locator("text=Филе Люминесцентного тетраодонтимформа")
+        const sauceIngredient = page.locator("text=Соус фирменный Space Sauce")
+        await expect(bunIngredient).toBeVisible()
+        await expect(mainIngerdient).toBeVisible()
+        await expect(sauceIngredient).toBeVisible()
+    })
+    test("Добавление булочек в конструктор", async ({ page }) => {
+        await page.waitForSelector("text=Краторная булка N-200i", { timeout: 5000 })
+        const bunButtons = page.locator("button:has-text('Добавить')").first()
+        await bunButtons.click()
+        await page.waitForSelector("text=Краторная булка N-200i", { timeout: 5000 })
+        expect(await page.locator("text=Краторная булка N-200i").count()).toBeGreaterThan(0)
+    })
+    test("Добавление игредиентов в конструктор", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const mainButtons = page.locator("button:has-text('Добавить')").first()
+        await mainButtons.click()
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        expect(await page.locator("text=Филе Люминесцентного тетраодонтимформа").count()).toBeGreaterThan(0)
+    })
+    test("Добавление соуса в конструктор", async ({ page }) => {
+        await page.waitForSelector("text=Соус фирменный Space Sauce", { timeout: 5000 })
+        const mainButtons = page.locator("button:has-text('Добавить')").first()
+        await mainButtons.click()
+        await page.waitForSelector("text=Соус фирменный Space Sauce", { timeout: 5000 })
+        expect(await page.locator("text=Соус фирменный Space Sauce").count()).toBeGreaterThan(0)
+    })
+    test("Открытие модального окна", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const ingredient = page.locator("text=Филе Люминесцентного тетраодонтимформа")
+        await ingredient.click()
+        const modalTitle = page.locator("text=Филе Люминесцентного тетраодонтимформа")
+        await expect(modalTitle).toBeVisible({ timeout: 5000 })
+    })
+    test("Закрытие модального окна", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const ingredient = page.locator("text=Филе Люминесцентного тетраодонтимформа")
+        await ingredient.click()
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const closeButton = page.locator("button")
+        await closeButton.click()
+        const modal = page.locator("text=Детали ингредиента")
+        expect(await modal.count()).toBe(0)
+    })
+    test("Закрытие модального окна по оверлею", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const ingredient = page.locator("text=Филе Люминесцентного тетраодонтимформа")
+        await ingredient.click()
+        await page.mouse.click(0, 0)
+        await page.waitForTimeout(500)
+        const modal = page.locator("text=Детали ингредиента")
+        expect(await modal.count()).toBe(0)
+    })
+    test("Создание заказа", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const bunAddButton = page.locator("button:has-text('Добавить')").first()
+        await bunAddButton.click()
+        const mainAddButton = page.locator("button:has-text('Добавить')").nth(3)
+        await mainAddButton.click()
+        const orderButton = page.locator("button:has-text('Оформить заказ')")
+        await orderButton.click()
+        await page.waitForSelector("text=/[0-9]{6}/", { timeout: 5000 })
+    })
+    test("Скрытие модального окна и очистка конструктора", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const bunAddButton = page.locator("button:has-text('Добавить')").first()
+        await bunAddButton.click()
+        const mainAddButton = page.locator("button:has-text('Добавить')").nth(3)
+        await mainAddButton.click()
+        const orderButton = page.locator("button:has-text('Оформить заказ')")
+        await orderButton.click()
+        await page.waitForSelector("text=/[0-9]{6}/", { timeout: 5000 })
+        const closeButton = page.locator("button")
+        await closeButton.click()
+        const clearBuns = page.locator("text=Выберите булки")
+        const clearIngredients = page.locator("text=Выберите начинку")
+        await expect(clearBuns).toBeVisible({ timeout: 5000 })
+        await expect(clearIngredients).toBeVisible({ timeout: 5000 })
+    })
+    test("Отображение итоговой стоимости", async ({ page }) => {
+        await page.waitForSelector("text=Филе Люминесцентного тетраодонтимформа", { timeout: 5000 })
+        const bunButtons = page.locator("button:has-text('Добавить')").first()
+        await bunButtons.click()
+        await page.waitForSelector("text=2510", {timeout: 5000})
+        await expect(page.locator("text=2510")).toBeVisible()
+    })
+})
