@@ -218,19 +218,19 @@ describe("ingredientsSlice", () => {
         expect(state).toEqual({ ingredients: [], loading: false, error: null })
     })
     describe("fetchIngredients", () => {
-        it("Загрузка в состоянии pending"), () => {
+        it("Загрузка в состоянии pending", () => {
             const initialState = { ingredients: [], loading: false, error: null }
             const action = { type: fetchIngredients.pending.type }
             const state = ingredientsReducer(initialState, action)
             expect(state.loading).toBe(true)
             expect(state.error).toBeNull()
             expect(state.ingredients).toEqual([])
-        }
+        })
         it("Ошибка при получении ингредиентов", () => {
             const initialState = { ingredients: [], loading: true, error: null }
-            const action = { type: fetchIngredients.rejected.type }
+            const errorMessage = "Ошибка"
+            const action = { type: fetchIngredients.rejected.type, error: {message: errorMessage} }
             const state = ingredientsReducer(initialState, action)
-            const errorMessage = "failed to fetch ingredients"
             expect(state.loading).toBe(false)
             expect(state.error).toBe(errorMessage)
             expect(state.ingredients).toEqual([])
