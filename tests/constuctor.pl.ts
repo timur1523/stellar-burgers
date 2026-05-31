@@ -35,6 +35,11 @@ test.describe('Страница конструктора', () => {
       localStorage.setItem('refreshToken', tokens.refreshToken);
     }, mockAuthTokens);
 
+    await page.routeFromHAR('./tests/fixtures/stellar-burgers.har', {
+      update: true,
+      notFound: 'abort'
+    });
+
     await context.route('**/auth/user', (route) =>
       route.fulfill({
         status: 200,
@@ -44,7 +49,6 @@ test.describe('Страница конструктора', () => {
     );
 
     await context.route('**/orders', async (route) => {
-      // Проверяем, что это POST-запрос
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -57,6 +61,14 @@ test.describe('Страница конструктора', () => {
     });
 
     await page.goto('/');
+  });
+
+  test.afterEach(async ({ page, context }) => {
+    await context.clearCookies();
+
+    await page.evaluate(() => { localStorage.clear(); });
+
+    await context.unrouteAll();
   });
 
   test('Отображает список ингредиентов из моков', async ({ page }) => {
@@ -104,7 +116,7 @@ test.describe('Страница конструктора', () => {
 
     await expect(page.locator('[data-testid="modal"]')).toBeVisible({ timeout: 30000 });
 
-    await  expect(page.locator('[data-testid="modal"]')).toContainText(String(mockOrderResponse.order.number));
+    await expect(page.locator('[data-testid="modal"]')).toContainText(String(mockOrderResponse.order.number));
 
     await expect(page.locator('[data-testid="modal"]')).toContainText(/\d+/);
   });
@@ -122,4 +134,4 @@ test.describe('Страница конструктора', () => {
     await expect(page.locator('text=Выберите булки').first()).toBeVisible({ timeout: 5000 });
     await expect(page.locator('text=Выберите начинку')).toBeVisible();
   });
-}); 
+});

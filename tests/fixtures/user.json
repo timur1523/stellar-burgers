@@ -1,8 +1,0 @@
-{
-    "success": true,
-    "user": {
-        "name": "Тестовый пользователь",
-        "email": "test@gmail.com",
-        "createdAt": "31.01.2004"
-    }
-}
